@@ -1,5 +1,7 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
+
 
 
 class Node():
@@ -16,9 +18,7 @@ class Node():
         # for leaf node
         self.value = value
 class DecisionTreeClassifier():
-    def __init__(self, min_samples_split=2, max_depth=2):
-        ''' constructor '''
-        
+    def __init__(self, min_samples_split=2, max_depth=None):
         # initialize the root of the tree 
         self.root = None
         
@@ -175,40 +175,55 @@ class DecisionTreeClassifier():
 
 
 
-# from sklearn.preprocessing import LabelEncoder
 
-
-
-
-
-# filename = './diabetes_prediction_dataset.csv'
-# data = pd.read_csv(filename)
-# data.drop(['age', 'smoking_history', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
-# label_encoder = LabelEncoder()
-# data['gender'] = label_encoder.fit_transform(data['gender'])
-# #print(data.head(100))
+filename = './diabetes_prediction_dataset.csv'
+data = pd.read_csv(filename)
+data.drop(['age', 'smoking_history', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
+label_encoder = LabelEncoder()
+data['gender'] = label_encoder.fit_transform(data['gender'])
+#print(data.head(10))
 
     
-# percent = float(100)
-# num_rows = len(data)
-# records_to_read = int(percent / 100 * num_rows)
-# print(records_to_read)
-# data = data[:records_to_read] # select first rows
-# # X = data.drop([data.columns[-1]], axis=1)
-# # y = data[data.columns[-1]]
+percent = float(1)
+num_rows = len(data)
+records_to_read = int(percent / 100 * num_rows)
+print(records_to_read)
+data = data[:records_to_read] # select first rows
+# X = data.drop([data.columns[-1]], axis=1)
+# y = data[data.columns[-1]]
 
 
-# X = data.iloc[:, :-1].values
-# Y = data.iloc[:, -1].values.reshape(-1,1)
+X = data.iloc[:, :-1].values
+Y = data.iloc[:, -1].values.reshape(-1,1)
 
-# from sklearn.model_selection import train_test_split
-# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=.2, random_state=41)
+from sklearn.model_selection import train_test_split
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=0)
 
-# classifier = DecisionTreeClassifier(min_samples_split=3, max_depth=3)
-# classifier.fit(X_train,Y_train)
-# #classifier.print_tree()
+classifier = DecisionTreeClassifier(min_samples_split=3, max_depth=300000000)
+classifier.fit(X_train,Y_train)
+#classifier.print_tree()
 
-# Y_pred = classifier.predict(X_test) 
-# from sklearn.metrics import accuracy_score
+Y_pred = classifier.predict(X_test)
+from sklearn.metrics import accuracy_score
+#print(Y_test)
+print(accuracy_score(Y_test, Y_pred)*100)
 
-# print(accuracy_score(Y_test, Y_pred)*100)
+from collections import Counter
+
+X_pred = X_test[:, [0, 1, 2]]
+predictions = classifier.predict(X_pred)
+predictions_df = pd.DataFrame({
+    'Gender': X_pred[:, 0],  # Assuming age is the first column
+    'Hypertension': X_pred[:, 1],
+    'Heart_Disease': X_pred[:, 2],
+    'Diabetes_Prediction': predictions
+    })
+#print(X_pred)
+#print(predictions_df)
+print(np.unique(predictions))
+
+# prediction_counts = Counter(predictions)
+# num_zeros = prediction_counts[0]
+# num_ones = prediction_counts[1]
+# print("Number of 0s in predictions:", num_zeros)
+# print("Number of 1s in predictions:", num_ones)
