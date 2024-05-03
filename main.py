@@ -3,19 +3,19 @@ from tkinter import filedialog, messagebox
 import pandas as pd
 import numpy as np 
 from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from Naive import NaiveBayes, Naiveaccuracy_score
-from DecisionTree import DecisionTreeClassifier
-from sklearn.metrics import accuracy_score
+from Naive import NaiveBayes, Naiveaccuracy_score,NAIVEtrain_test_split
+from DecisionTree import DecisionTreeClassifier,train_test_split,accuracy
+
 
 def browse_file():
-    filename = filedialog.askopenfilename(initialdir="/D:/ass/4th year/DATA MINING/DiabetesClassification/", title="Select file",
-                                          filetypes=(("CSV files", "*.csv"), ("all files", "*.*")))
+    filename = filedialog.askopenfilename(initialdir="/D:/ass/4th year/DATA MINING/DiabetesClassification/", title="Select file",filetypes=(("CSV files", "*.csv"), ("all files", "*.*")))
     if filename:
         entry_path.delete(0, tk.END)
         entry_path.insert(0, filename)
 
 def process_data():
+    text_output.delete('1.0', tk.END)
+
     file_path = entry_path.get()
     if not file_path:
         messagebox.showerror("Error", "Please select a CSV file.")
@@ -41,7 +41,8 @@ def process_data():
 
         X = data.drop([data.columns[-1]], axis=1)
         y = data[data.columns[-1]]
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
+
+        X_train, X_test, y_train, y_test = NAIVEtrain_test_split(X, y, test_size=0.25, random_state=42)
 
         Naiveclassifier = NaiveBayes()
         Naiveclassifier.fit(X_train, y_train)
@@ -60,14 +61,14 @@ def process_data():
         print(np.unique(predictions))
         text_output.insert(tk.END, "Predictions of NAIVE model:\n")
         text_output.insert(tk.END, predictions_df.to_string(index=False) + '\n\n')
-
+        ######################
         X_train, X_test, Y_train, Y_test = train_test_split(X.values, y.values.reshape(-1,1), test_size=0.25, random_state=0)
         DTclassifier = DecisionTreeClassifier(min_samples_split=3, max_depth=99900000000)
         DTclassifier.fit(X_train,Y_train)
 
         Y_pred = DTclassifier.predict(X_test) 
-        DTaccuracy = accuracy_score(Y_test, Y_pred)*100
-        text_output.insert(tk.END, f"Accuracy of the DT model: {DTaccuracy}\n\n")
+        DTaccuracy = accuracy(Y_test, Y_pred)*100
+        text_output.insert(tk.END, f"Accuracy of the DT model: {DTaccuracy}\n")
         text_output.insert(tk.END, f"# of test set : {len(X_test)}\n\n")
         X_pred = X_test[:, [0, 1, 2]] 
         predictions = DTclassifier.predict(X_pred)
@@ -79,6 +80,7 @@ def process_data():
         })
         print("DT")
         print(np.unique(predictions))
+        print("END")
         text_output.insert(tk.END, "Predictions of DT model:\n")
         text_output.insert(tk.END, predictions_df.to_string(index=False) + '\n\n')
     except Exception as e:

@@ -6,19 +6,16 @@ from sklearn.preprocessing import LabelEncoder
 
 class Node():
     def __init__(self, feature_index=None, threshold=None, left=None, right=None, info_gain=None, value=None):
-        ''' constructor ''' 
-        
         # for decision node
         self.feature_index = feature_index
         self.threshold = threshold
         self.left = left
         self.right = right
         self.info_gain = info_gain
-        
-        # for leaf node
         self.value = value
+
 class DecisionTreeClassifier():
-    def __init__(self, min_samples_split=2, max_depth=None):
+    def __init__(self, min_samples_split=2, max_depth=2):
         # initialize the root of the tree 
         self.root = None
         
@@ -89,8 +86,6 @@ class DecisionTreeClassifier():
         return best_split
     
     def split(self, dataset, feature_index, threshold):
-        ''' function to split the data '''
-        
         dataset_left = np.array([row for row in dataset if row[feature_index]<=threshold])
         dataset_right = np.array([row for row in dataset if row[feature_index]>threshold])
         return dataset_left, dataset_right
@@ -170,60 +165,61 @@ class DecisionTreeClassifier():
         else:
             return self.make_prediction(x, tree.right)
 
+def train_test_split(X, y, random_state=None, test_size=0.25):
+    # Get number of samples
+    n_samples = X.shape[0]
+    # Set the seed for the random number generator
+    np.random.seed(random_state)
+    # Shuffle the indices
+    shuffled_indices = np.random.permutation(np.arange(n_samples))
+    # Determine the size of the test set
+    test_size = int(n_samples * test_size)
+    # Split the indices into test and train
+    test_indices = shuffled_indices[:test_size]
+    train_indices = shuffled_indices[test_size:]
+    # Split the features and target arrays into test and train
+    X_train, X_test = X[train_indices], X[test_indices]
+    y_train, y_test = y[train_indices], y[test_indices]
+    return X_train, X_test, y_train, y_test
+    
+
+def accuracy(y_true, y_pred):
+    y_true = y_true.flatten()
+    total_samples = len(y_true)
+    correct_predictions = np.sum(y_true == y_pred)
+    return (correct_predictions / total_samples) 
 
 
 
-
-
-
-filename = './diabetes_prediction_dataset.csv'
-data = pd.read_csv(filename)
-data.drop(['age', 'smoking_history', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
-label_encoder = LabelEncoder()
-data['gender'] = label_encoder.fit_transform(data['gender'])
-#print(data.head(10))
+# filename = './diabetes_prediction_dataset.csv'
+# data = pd.read_csv(filename)
+# data.drop(['age', 'smoking_history', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
+# label_encoder = LabelEncoder()
+# data['gender'] = label_encoder.fit_transform(data['gender'])
 
     
-percent = float(1)
-num_rows = len(data)
-records_to_read = int(percent / 100 * num_rows)
-print(records_to_read)
-data = data[:records_to_read] # select first rows
-# X = data.drop([data.columns[-1]], axis=1)
-# y = data[data.columns[-1]]
+# percent = float(1)
+# num_rows = len(data)
+# records_to_read = int(percent / 100 * num_rows)
+# data = data[:records_to_read]
 
+# X = data.iloc[:, :-1].values
+# Y = data.iloc[:, -1].values.reshape(-1,1)
 
-X = data.iloc[:, :-1].values
-Y = data.iloc[:, -1].values.reshape(-1,1)
+# X_train, X_test, Y_train, Y_test = train_test_split(X, Y, random_state=0, test_size=0.25)
+# classifier = DecisionTreeClassifier(min_samples_split=3, max_depth=3999)
+# classifier.fit(X_train,Y_train)
 
-from sklearn.model_selection import train_test_split
-X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.25, random_state=0)
+# print(accuracy(Y_test, classifier.predict(X_test))*100)
 
-classifier = DecisionTreeClassifier(min_samples_split=3, max_depth=300000000)
-classifier.fit(X_train,Y_train)
-#classifier.print_tree()
-
-Y_pred = classifier.predict(X_test)
-from sklearn.metrics import accuracy_score
-#print(Y_test)
-print(accuracy_score(Y_test, Y_pred)*100)
-
-from collections import Counter
-
-X_pred = X_test[:, [0, 1, 2]]
-predictions = classifier.predict(X_pred)
-predictions_df = pd.DataFrame({
-    'Gender': X_pred[:, 0],  # Assuming age is the first column
-    'Hypertension': X_pred[:, 1],
-    'Heart_Disease': X_pred[:, 2],
-    'Diabetes_Prediction': predictions
-    })
-#print(X_pred)
-#print(predictions_df)
-print(np.unique(predictions))
-
-# prediction_counts = Counter(predictions)
-# num_zeros = prediction_counts[0]
-# num_ones = prediction_counts[1]
-# print("Number of 0s in predictions:", num_zeros)
-# print("Number of 1s in predictions:", num_ones)
+# X_pred = X_test[:, [0, 1, 2]]
+# predictions = classifier.predict(X_pred)
+# predictions_df = pd.DataFrame({
+#     'Gender': X_pred[:, 0],
+#     'Hypertension': X_pred[:, 1],
+#     'Heart_Disease': X_pred[:, 2],
+#     'Diabetes_Prediction': predictions
+#     })
+# # print(X_test)
+# # print(predictions_df)
+# print(np.unique(predictions))
