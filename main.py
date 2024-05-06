@@ -31,9 +31,11 @@ def process_data():
     
     try:
         data = pd.read_csv(file_path)
-        data.drop(['age', 'smoking_history', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
+        data.drop(['age', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
         label_encoder = LabelEncoder()
         data['gender'] = label_encoder.fit_transform(data['gender'])
+        data['smoking_history'] = label_encoder.fit_transform(data['smoking_history'])
+
 
         num_rows = len(data)
         records_to_read = int(percent / 100 * num_rows)
@@ -53,10 +55,11 @@ def process_data():
         X_pred = X_test[['gender', 'hypertension', 'heart_disease']]
         predictions = Naiveclassifier.predict(X_pred)
         predictions_df = pd.DataFrame({
-            'gender': X_pred['gender'],
-            'hypertension': X_pred['hypertension'],
-            'heart_disease': X_pred['heart_disease'],
-            'diabetes': predictions
+            'Gender': X_pred['gender'],
+            'Hypertension': X_pred['hypertension'],
+            'Heart_disease': X_pred['heart_disease'],
+            'Smoking History': X_pred['smoking_history'],
+            'Diabetes Prediction': predictions
         })
         print(np.unique(predictions))
         text_output.insert(tk.END, "Predictions of NAIVE model:\n")
@@ -76,7 +79,8 @@ def process_data():
             'Gender': X_test[:, 0],
             'Hypertension': X_test[:, 1],
             'Heart_Disease': X_test[:, 2],
-            'Diabetes_Prediction': predictions
+            'Smoking History': X_test[:, 3],
+            'Diabetes Prediction': predictions
         })
         print("DT")
         print(np.unique(predictions))
@@ -113,7 +117,7 @@ entry_percent.grid(row=1, column=1, padx=5, pady=5)
 frame_output = tk.Frame(root)
 frame_output.pack(padx=10, pady=10)
 
-text_output = tk.Text(frame_output, width=80, height=20)
+text_output = tk.Text(frame_output, width=190, height=30)
 text_output.pack(padx=5, pady=5)
 
 button_process = tk.Button(root, text="Process Data", command=process_data)

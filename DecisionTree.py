@@ -2,11 +2,8 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-
-
 class Node():
     def __init__(self, feature_index=None, threshold=None, left=None, right=None, info_gain=None, value=None):
-        # for decision node
         self.feature_index = feature_index
         self.threshold = threshold
         self.left = left
@@ -16,50 +13,36 @@ class Node():
 
 class DecisionTreeClassifier():
     def __init__(self, min_samples_split=2, max_depth=2):
-        # initialize the root of the tree 
         self.root = None
-        
-        # stopping conditions
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
-        
+    #recursive function to build the tree
     def build_tree(self, dataset, curr_depth=0):
-        ''' recursive function to build the tree ''' 
-        
         X, Y = dataset[:,:-1], dataset[:,-1]
         num_samples, num_features = np.shape(X)
-        
         # split until stopping conditions are met
         if num_samples >= self.min_samples_split and curr_depth <= self.max_depth:
             # find the best split
             best_split = self.get_best_split(dataset, num_samples, num_features)
             # check if information gain is positive
             if best_split and best_split.get("info_gain", 0) > 0:  # Check if best_split is not empty
-                # recur left
                 left_subtree = self.build_tree(best_split["dataset_left"], curr_depth + 1)
-                # recur right
                 right_subtree = self.build_tree(best_split["dataset_right"], curr_depth + 1)
-                # return decision node
-                return Node(best_split["feature_index"], best_split["threshold"], 
-                            left_subtree, right_subtree, best_split["info_gain"])
-        
+                return Node(best_split["feature_index"], best_split["threshold"], left_subtree, right_subtree, best_split["info_gain"])
         # compute leaf node
         leaf_value = self.calculate_leaf_value(Y)
         # return leaf node
         return Node(value=leaf_value)
-    
         # compute leaf node
         leaf_value = self.calculate_leaf_value(Y)
         # return leaf node
         return Node(value=leaf_value)
-    
+
+    #function to find the best split    
     def get_best_split(self, dataset, num_samples, num_features):
-        ''' function to find the best split '''
-        
         # dictionary to store the best split
         best_split = {}
         max_info_gain = -float("inf")
-        
         # loop over all the features
         for feature_index in range(num_features):
             feature_values = dataset[:, feature_index]
@@ -81,7 +64,6 @@ class DecisionTreeClassifier():
                         best_split["dataset_right"] = dataset_right
                         best_split["info_gain"] = curr_info_gain
                         max_info_gain = curr_info_gain
-                        
         # return best split
         return best_split
     
@@ -91,8 +73,6 @@ class DecisionTreeClassifier():
         return dataset_left, dataset_right
     
     def information_gain(self, parent, l_child, r_child, mode="entropy"):
-        ''' function to compute information gain '''
-        
         weight_l = len(l_child) / len(parent)
         weight_r = len(r_child) / len(parent)
         if mode=="gini":
@@ -102,8 +82,6 @@ class DecisionTreeClassifier():
         return gain
     
     def entropy(self, y):
-        ''' function to compute entropy '''
-        
         class_labels = np.unique(y)
         entropy = 0
         for cls in class_labels:
@@ -112,8 +90,6 @@ class DecisionTreeClassifier():
         return entropy
     
     def gini_index(self, y):
-        ''' function to compute gini index '''
-        
         class_labels = np.unique(y)
         gini = 0
         for cls in class_labels:
@@ -122,36 +98,14 @@ class DecisionTreeClassifier():
         return 1 - gini
         
     def calculate_leaf_value(self, Y):
-        ''' function to compute leaf node '''
-        
         Y = list(Y)
         return max(Y, key=Y.count)
     
-    def print_tree(self, tree=None, indent=" "):
-        ''' function to print the tree '''
-        
-        if not tree:
-            tree = self.root
-
-        if tree.value is not None:
-            print(tree.value)
-
-        else:
-            print("X_"+str(tree.feature_index), "<=", tree.threshold, "?", tree.info_gain)
-            print("%sleft:" % (indent), end="")
-            self.print_tree(tree.left, indent + indent)
-            print("%sright:" % (indent), end="")
-            self.print_tree(tree.right, indent + indent)
-    
     def fit(self, X, Y):
-        ''' function to train the tree '''
-        
         dataset = np.concatenate((X, Y), axis=1)
         self.root = self.build_tree(dataset)
     
     def predict(self, X):
-        ''' function to predict new dataset '''
-        
         preditions = [self.make_prediction(x, self.root) for x in X]
         return preditions
     
@@ -189,16 +143,14 @@ def accuracy(y_true, y_pred):
     correct_predictions = np.sum(y_true == y_pred)
     return (correct_predictions / total_samples) 
 
-
-
 # filename = './diabetes_prediction_dataset.csv'
 # data = pd.read_csv(filename)
-# data.drop(['age', 'smoking_history', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
+# data.drop(['age', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
 # label_encoder = LabelEncoder()
 # data['gender'] = label_encoder.fit_transform(data['gender'])
-
+# data['smoking_history'] = label_encoder.fit_transform(data['smoking_history'])
     
-# percent = float(1)
+# percent = float(10)
 # num_rows = len(data)
 # records_to_read = int(percent / 100 * num_rows)
 # data = data[:records_to_read]
@@ -207,19 +159,33 @@ def accuracy(y_true, y_pred):
 # Y = data.iloc[:, -1].values.reshape(-1,1)
 
 # X_train, X_test, Y_train, Y_test = train_test_split(X, Y, random_state=0, test_size=0.25)
-# classifier = DecisionTreeClassifier(min_samples_split=3, max_depth=3999)
+# classifier = DecisionTreeClassifier(min_samples_split=3, max_depth=39999999999999999999999999999999)
 # classifier.fit(X_train,Y_train)
 
 # print(accuracy(Y_test, classifier.predict(X_test))*100)
 
-# X_pred = X_test[:, [0, 1, 2]]
+# X_pred = X_test[:, [0, 1, 2, 3]]
 # predictions = classifier.predict(X_pred)
 # predictions_df = pd.DataFrame({
 #     'Gender': X_pred[:, 0],
 #     'Hypertension': X_pred[:, 1],
-#     'Heart_Disease': X_pred[:, 2],
-#     'Diabetes_Prediction': predictions
+#     'Heart Disease': X_pred[:, 2],
+#     'Smoking History': X_pred[:, 3],
+#     'Diabetes Prediction': predictions
 #     })
 # # print(X_test)
 # # print(predictions_df)
-# print(np.unique(predictions))
+# #print(np.unique(predictions))
+# # count_0 = 0
+# # count_1 = 0
+
+# # # Iterate through the predictions
+# # for prediction in predictions:
+# #     if prediction == 0:
+# #         count_0 += 1
+# #     elif prediction == 1:
+# #         count_1 += 1
+
+# # # Print the counts
+# # print("Number of 0s:", count_0)
+# # print("Number of 1s:", count_1)
