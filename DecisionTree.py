@@ -1,6 +1,4 @@
 import numpy as np
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 
 class Node():
     def __init__(self, feature_index=None, threshold=None, left=None, right=None, info_gain=None, value=None):
@@ -11,32 +9,35 @@ class Node():
         self.info_gain = info_gain
         self.value = value
 
+
 class DecisionTreeClassifier():
-    def __init__(self, min_samples_split=2, max_depth=2):
+    
+    def __init__(self, min_samples_split=0, max_depth=0):
         self.root = None
         self.min_samples_split = min_samples_split
         self.max_depth = max_depth
+
     #recursive function to build the tree
     def build_tree(self, dataset, curr_depth=0):
         X, Y = dataset[:,:-1], dataset[:,-1]
         num_samples, num_features = np.shape(X)
+        
         # split until stopping conditions are met
         if num_samples >= self.min_samples_split and curr_depth <= self.max_depth:
             # find the best split
             best_split = self.get_best_split(dataset, num_samples, num_features)
+            
             # check if information gain is positive
             if best_split and best_split.get("info_gain", 0) > 0:  # Check if best_split is not empty
                 left_subtree = self.build_tree(best_split["dataset_left"], curr_depth + 1)
                 right_subtree = self.build_tree(best_split["dataset_right"], curr_depth + 1)
                 return Node(best_split["feature_index"], best_split["threshold"], left_subtree, right_subtree, best_split["info_gain"])
+        
         # compute leaf node
         leaf_value = self.calculate_leaf_value(Y)
         # return leaf node
         return Node(value=leaf_value)
-        # compute leaf node
-        leaf_value = self.calculate_leaf_value(Y)
-        # return leaf node
-        return Node(value=leaf_value)
+        
 
     #function to find the best split    
     def get_best_split(self, dataset, num_samples, num_features):
@@ -111,7 +112,6 @@ class DecisionTreeClassifier():
     
     def make_prediction(self, x, tree):
         ''' function to predict a single data point '''
-        
         if tree.value!=None: return tree.value
         feature_val = x[tree.feature_index]
         if feature_val<=tree.threshold:
@@ -119,7 +119,7 @@ class DecisionTreeClassifier():
         else:
             return self.make_prediction(x, tree.right)
 
-def train_test_split(X, y, random_state=None, test_size=0.25):
+def train_test_split(X, y,  test_size=0.25,random_state=None):
     # Get number of samples
     n_samples = X.shape[0]
     # Set the seed for the random number generator
@@ -141,7 +141,15 @@ def accuracy(y_true, y_pred):
     y_true = y_true.flatten()
     total_samples = len(y_true)
     correct_predictions = np.sum(y_true == y_pred)
-    return (correct_predictions / total_samples) 
+    return (correct_predictions / total_samples)
+
+
+
+
+
+
+
+
 
 # filename = './diabetes_prediction_dataset.csv'
 # data = pd.read_csv(filename)
@@ -162,7 +170,7 @@ def accuracy(y_true, y_pred):
 # classifier = DecisionTreeClassifier(min_samples_split=3, max_depth=39999999999999999999999999999999)
 # classifier.fit(X_train,Y_train)
 
-# print(accuracy(Y_test, classifier.predict(X_test))*100)
+#print(accuracy(Y_test, classifier.predict(X_test))*100)
 
 # X_pred = X_test[:, [0, 1, 2, 3]]
 # predictions = classifier.predict(X_pred)

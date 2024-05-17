@@ -1,16 +1,8 @@
 import numpy as np 
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-
-def Naiveaccuracy_score(y_true, y_pred):
-    """Calculate the accuracy score."""
-    return round(float(sum(y_pred == y_true))/float(len(y_true)) * 100 ,2)
-
-
 
 class NaiveBayes:
+    #Initialize the Naive Bayes classifier with empty dictionaries
     def __init__(self):
-        """Initialize the Naive Bayes classifier."""
         self.features = []
         self.likelihoods = {}
         self.class_priors = {}
@@ -20,8 +12,8 @@ class NaiveBayes:
         self.train_size = 0
         self.num_feats = 0
 
+    #Fit the classifier to the data
     def fit(self, X, y):
-        """Fit the classifier to the data."""
         self.features = list(X.columns)
         self.X_train = X
         self.y_train = y
@@ -38,35 +30,34 @@ class NaiveBayes:
                 for outcome in np.unique(self.y_train):
                     self.likelihoods[feature][str(feat_val) + '_' + str(outcome)] = 0
                     self.class_priors[outcome] = 0
-
         self._calc_class_prior()
         self._calc_likelihoods()
         self._calc_predictor_prior()
 
+    #Calculate prior probabilities of classes.
     def _calc_class_prior(self):
-        """Calculate prior probabilities of classes."""
         for outcome in np.unique(self.y_train):
             outcome_count = sum(self.y_train == outcome)
             self.class_priors[outcome] = outcome_count / self.train_size
-
+    
+    #Calculate likelihoods of features given class outcomes
     def _calc_likelihoods(self):
-        """Calculate likelihoods."""
         for feature in self.features:
             for outcome in np.unique(self.y_train):
                 outcome_count = sum(self.y_train == outcome)
                 feat_likelihood = self.X_train[feature][self.y_train[self.y_train == outcome].index.values.tolist()].value_counts().to_dict()
                 for feat_val, count in feat_likelihood.items():
                     self.likelihoods[feature][str(feat_val) + '_' + str(outcome)] = count / outcome_count
-
+    
+    #Calculate prior probabilities of features    
     def _calc_predictor_prior(self):
-        """Calculate prior probabilities of features."""
         for feature in self.features:
             feat_vals = self.X_train[feature].value_counts().to_dict()
             for feat_val, count in feat_vals.items():
                 self.pred_priors[feature][feat_val] = count / self.train_size
 
+    #Predict the class labels for the input data
     def predict(self, X):
-        """Predict the class labels for the input data."""
         results = []
         X = np.array(X)
 
@@ -89,8 +80,8 @@ class NaiveBayes:
 
         return np.array(results)
 
+#Custom implementation of train-test split
 def NAIVEtrain_test_split(X, y, test_size=0.25, random_state=None):
-    """Custom implementation of train-test split."""
     if random_state:
         np.random.seed(random_state)
     
@@ -106,10 +97,33 @@ def NAIVEtrain_test_split(X, y, test_size=0.25, random_state=None):
     
     return X_train, X_test, y_train, y_test
 
+def Naiveaccuracy_score(y_true, y_pred):
+    return round(float(sum(y_pred == y_true))/float(len(y_true)) * 100 ,2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # data = pd.read_csv("diabetes_prediction_dataset.csv")
-# data.drop(['age', 'smoking_history', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
+# data.drop(['age', 'bmi', 'blood_glucose_level','HbA1c_level'], axis=1, inplace=True)
 # label_encoder = LabelEncoder()
 # data['gender'] = label_encoder.fit_transform(data['gender'])
+# data['smoking_history'] = label_encoder.fit_transform(data['smoking_history'])
 
 # percent = float(1)
 # num_rows = len(data)
@@ -134,12 +148,13 @@ def NAIVEtrain_test_split(X, y, test_size=0.25, random_state=None):
 
     
 
-# X_pred = X_test[['gender', 'hypertension', 'heart_disease']]
+# X_pred = X_test[['gender', 'hypertension', 'heart_disease','smoking_history']]
 # predictions = Naiveclassifier.predict(X_pred)
 # predictions_df = pd.DataFrame({
 #     'gender': X_pred['gender'],
 #     'hypertension': X_pred['hypertension'],
 #     'heart_disease': X_pred['heart_disease'],
+#     'smoking_history': X_pred['smoking_history'],
 #     'diabetes': predictions
     
 # })
